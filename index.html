@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Orbitani</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Orbitani combines satellite imagery, the Orbistick soil sensor and AI to tell estates what to plant and what to do next, block by block.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: mobile-first single column; the hero is a dark-green "field at night" band with a satellite-over-estate illustration, then white content bands, yellow reserved for the action. */
+:root{
+  --bg:#FFFFFF;
+  --surface:#F1F5F1;
+  --fg:#10241A;
+  --muted:#4D6257;
+  --line:#D6E1D8;
+  --brand:#0F3D2A;
+  --brand-2:#174E37;
+  --on-brand:#FFFFFF;
+  --on-brand-muted:#B9D0C1;
+  --accent:#F2BE22;
+  --accent-press:#D9A80F;
+  --on-accent:#10241A;
+  --danger:#B3261E;
+  --t1:#2E7A4E; --t2:#4F9C5F; --t3:#A7C46A; --t4:#E3B53A;
+  --font-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body:"Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-data:"JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --radius:14px;
+  --wrap:1120px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0A1912; --surface:#11261B; --fg:#E8F0EA; --muted:#9FB5A8; --line:#24402F;
+    --brand:#0F3D2A; --brand-2:#1A5139; --danger:#F2867D;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0A1912; --surface:#11261B; --fg:#E8F0EA; --muted:#9FB5A8; --line:#24402F;
+  --brand:#0F3D2A; --brand-2:#1A5139; --danger:#F2867D;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--brand)}
+.wrap{max-width:var(--wrap);margin:0 auto;padding-left:max(16px, env(safe-area-inset-left,0px));padding-right:max(16px, env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--font-display);line-height:1.08;letter-spacing:-0.02em;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-family:var(--font-data);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* Buttons */
+.btn{appearance:none;border:0;cursor:pointer;font:600 16px/1 var(--font-body);display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 24px;border-radius:999px;background:var(--accent);color:var(--on-accent);text-decoration:none;transition:background .15s, transform .15s}
+.btn:hover{background:var(--accent-press)}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible,.field input:focus-visible,.icon-btn:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.btn svg{width:18px;height:18px}
+.btn-sm{min-height:40px;padding:0 16px;font-size:14px}
+
+/* Header */
+.site-header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--brand);color:var(--on-brand);border-bottom:1px solid rgba(255,255,255,.08)}
+.site-header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:10px}
+.logo{display:flex;align-items:center;gap:10px;font:800 20px/1 var(--font-display);letter-spacing:-0.02em;color:var(--on-brand);text-decoration:none}
+.logo svg{width:28px;height:28px}
+
+/* Hero */
+.hero{background:var(--brand);color:var(--on-brand);overflow:hidden}
+.hero .wrap{display:grid;gap:32px;padding-block:40px 48px}
+.hero .eyebrow{color:var(--on-brand-muted)}
+.hero h1{font-size:clamp(40px, 10.5vw, 76px);font-weight:800;margin-top:14px}
+.hero h1 mark{background:none;color:var(--accent)}
+.hero .sub{font-size:clamp(17px, 2.2vw, 20px);color:var(--on-brand-muted);max-width:34em;margin-top:18px}
+.hero .actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;margin-top:28px}
+.hero .note{font-size:14px;color:var(--on-brand-muted)}
+.visual{position:relative;min-width:0}
+.visual svg.scene{display:block;width:100%;height:auto;max-width:100%}
+.reco{position:relative;margin:-56px 0 0 auto;width:min(300px, 88%);background:var(--bg);color:var(--fg);border-radius:var(--radius);padding:14px 14px 12px;box-shadow:0 18px 40px rgba(0,0,0,.35);font-size:13px;line-height:1.45}
+.reco .tag{display:flex;justify-content:space-between;gap:8px;font-family:var(--font-data);font-size:11px;color:var(--muted);letter-spacing:.04em}
+.reco .tag b{color:var(--fg);font-weight:500}
+.reco .readings{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.reco .readings span{font-family:var(--font-data);font-size:11px;padding:3px 7px;border-radius:6px;background:var(--surface);border:1px solid var(--line)}
+.reco .readings .warn{border-color:var(--t4)}
+.reco .action{font-weight:600}
+.reco .example{display:block;margin-top:8px;font-size:11px;color:var(--muted)}
+@media (min-width:900px){
+  .hero .wrap{grid-template-columns:1.05fr 1fr;align-items:center;padding-block:72px 80px}
+  .reco{width:min(280px, 60%);margin-top:-40px}
+}
+
+/* Sections */
+section{scroll-margin-top:70px}
+.band{padding-block:64px}
+.band-tint{background:var(--surface)}
+.section-head{max-width:40em;display:grid;gap:12px;margin-bottom:32px}
+.section-head h2{font-size:clamp(30px, 6vw, 44px);font-weight:700}
+.section-head p{color:var(--muted);font-size:17px}
+
+/* Problem / solution */
+.ps{display:grid;gap:14px}
+.ps-row{display:grid;grid-template-columns:1fr;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;background:var(--bg)}
+.ps-cell{padding:20px;display:grid;gap:6px;min-width:0}
+.ps-cell .eyebrow{font-size:11px}
+.ps-cell h3{font-size:20px;font-weight:700}
+.ps-cell p{color:var(--muted)}
+.ps-pain{border-bottom:1px dashed var(--line)}
+.ps-fix{background:var(--brand);color:var(--on-brand)}
+.ps-fix .eyebrow{color:var(--accent)}
+.ps-fix p{color:var(--on-brand-muted)}
+.ps-labels{display:none}
+@media (min-width:760px){
+  .ps-labels{display:grid;grid-template-columns:1fr 1fr;padding-inline:20px}
+  .ps-row{grid-template-columns:1fr 1fr}
+  .ps-pain{border-bottom:0;border-right:1px dashed var(--line)}
+  .ps-cell .eyebrow{display:none}
+}
+
+/* Benefits */
+.benefits{display:grid;gap:28px}
+.benefit{display:grid;gap:10px;align-content:start;padding-top:20px;border-top:2px solid var(--fg)}
+.benefit .metric{font:800 clamp(34px,6vw,44px)/1 var(--font-display);letter-spacing:-0.03em;color:var(--brand)}
+.benefit h3{font-size:20px;font-weight:700}
+.benefit p{color:var(--muted)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .benefit .metric{color:var(--accent)}}
+:root[data-theme="dark"] .benefit .metric{color:var(--accent)}
+@media (min-width:760px){.benefits{grid-template-columns:repeat(3,1fr)}}
+
+/* CTA band */
+.cta-band{background:var(--brand);color:var(--on-brand)}
+.cta-band .wrap{display:grid;gap:20px;padding-block:48px;align-items:center}
+.cta-band h2{font-size:clamp(26px,5vw,36px);font-weight:700}
+.cta-band p{color:var(--on-brand-muted);margin-top:8px;max-width:36em}
+@media (min-width:760px){.cta-band .wrap{grid-template-columns:1fr auto}}
+
+/* Trust */
+.trust{display:grid;gap:16px}
+.promise{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;padding:20px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg)}
+.promise .ico{width:40px;height:40px;border-radius:10px;background:var(--brand);display:grid;place-items:center}
+.promise .ico svg{width:22px;height:22px}
+.promise h3{font-size:18px;font-weight:700;margin-bottom:4px}
+.promise p{color:var(--muted);font-size:15px}
+.placeholder{border:1.5px dashed var(--muted);border-radius:var(--radius);padding:20px;display:grid;gap:8px;color:var(--muted);background:transparent}
+.placeholder .ph-label{font-family:var(--font-data);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.placeholder blockquote{margin:0;font-size:17px;color:var(--fg);opacity:.55;font-style:italic}
+.logos{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.logos span{border:1.5px dashed var(--line);border-radius:10px;min-height:56px;display:grid;place-items:center;font-family:var(--font-data);font-size:11px;color:var(--muted);text-align:center;padding:6px}
+@media (min-width:760px){
+  .trust{grid-template-columns:repeat(3,1fr)}
+  .trust .placeholder{grid-column:span 3;grid-template-columns:1.4fr 1fr;align-items:center;gap:24px}
+  .logos{grid-template-columns:repeat(4,1fr)}
+}
+
+/* Final CTA */
+.final{text-align:left}
+.final .wrap{display:grid;gap:18px;padding-block:72px}
+.final h2{font-size:clamp(32px,7vw,56px);font-weight:800;max-width:14em}
+.final p{color:var(--muted);font-size:17px;max-width:34em}
+
+footer{border-top:1px solid var(--line)}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px;padding-block:24px;font-size:14px;color:var(--muted)}
+.owner-count{font-family:var(--font-data);font-size:12px;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--fg)}
+
+/* Dialog */
+dialog{border:0;padding:0;border-radius:20px;width:min(440px, calc(100vw - 32px));background:var(--bg);color:var(--fg);box-shadow:0 30px 80px rgba(0,0,0,.35)}
+dialog::backdrop{background:rgba(6,20,13,.6)}
+.dlg{padding:24px;display:grid;gap:18px}
+.dlg-head{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.dlg-head h2{font-size:26px;font-weight:700}
+.dlg-head p{color:var(--muted);font-size:15px;margin-top:6px}
+.icon-btn{appearance:none;border:1px solid var(--line);background:transparent;color:var(--fg);width:36px;height:36px;border-radius:50%;cursor:pointer;display:grid;place-items:center;flex:none}
+.field{display:grid;gap:6px}
+.field label{font-weight:600;font-size:14px}
+.field input{font:16px var(--font-body);color:var(--fg);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;min-height:48px;width:100%}
+.field input[aria-invalid="true"]{border-color:var(--danger)}
+.field .hint{font-size:13px;color:var(--muted)}
+.field .err{font-size:13px;color:var(--danger)}
+.dlg .btn{width:100%}
+.dlg .fine{font-size:12px;color:var(--muted);text-align:center}
+.form-error{font-size:14px;color:var(--danger);background:transparent;border:1px solid var(--danger);border-radius:10px;padding:10px 12px}
+.done{display:grid;gap:12px;justify-items:start}
+.done .check{width:48px;height:48px;border-radius:50%;background:var(--brand);display:grid;place-items:center}
+</style>
+
+<header class="site-header">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="Orbitani home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="18" r="7" fill="#F2BE22"/><ellipse cx="16" cy="16" rx="14" ry="6" fill="none" stroke="#FFFFFF" stroke-width="2" transform="rotate(-18 16 16)"/><path d="M16 11c2.5 0 4 2 4 4.5" stroke="#0F3D2A" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      Orbitani
+    </a>
+    <button class="btn btn-sm" type="button" data-cta="header">Contact us</button>
+  </div>
+</header>
+
+<main id="top">
+  <!-- 1–3: Headline, sub copy, hero visual -->
+  <section class="hero" aria-labelledby="h-hero">
+    <div class="wrap">
+      <div>
+        <p class="eyebrow">For plantations &amp; agribusiness in Indonesia</p>
+        <h1 id="h-hero">Know your soil <mark>this week</mark>, not after the planting window.</h1>
+        <p class="sub">Orbitani combines satellite imagery, the Orbistick field sensor and AI to tell your team what to plant and what to do next, block by block.</p>
+        <div class="actions">
+          <button class="btn" type="button" data-cta="top">Contact us
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="note">We reply by email or WhatsApp.</span>
+        </div>
+      </div>
+
+      <figure class="visual" style="margin:0">
+        <svg class="scene" viewBox="0 0 480 420" role="img" aria-label="A satellite scans an estate divided into blocks while an Orbistick sensor reads the soil in one block">
+          <defs>
+            <linearGradient id="beam" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#F2BE22" stop-opacity=".55"/>
+              <stop offset="1" stop-color="#F2BE22" stop-opacity=".04"/>
+            </linearGradient>
+            <radialGradient id="glow" cx=".5" cy=".5" r=".5">
+              <stop offset="0" stop-color="#F2BE22" stop-opacity=".5"/>
+              <stop offset="1" stop-color="#F2BE22" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <!-- orbit path -->
+          <path d="M-20 120 C 120 10, 360 -10, 500 60" fill="none" stroke="#FFFFFF" stroke-opacity=".18" stroke-width="1.5" stroke-dasharray="3 7"/>
+          <!-- beam -->
+          <polygon points="112,84 60,300 330,215" fill="url(#beam)"/>
+          <!-- estate blocks (isometric grid) -->
+          <g transform="matrix(0.866,0.5,-0.866,0.5,240,150)">
+            <g stroke="#0F3D2A" stroke-width="3">
+              <rect x="0" y="0" width="46" height="46" fill="var(--t1)"/>
+              <rect x="48" y="0" width="46" height="46" fill="var(--t2)"/>
+              <rect x="96" y="0" width="46" height="46" fill="var(--t1)"/>
+              <rect x="144" y="0" width="46" height="46" fill="var(--t2)"/>
+              <rect x="192" y="0" width="46" height="46" fill="var(--t3)"/>
+              <rect x="0" y="48" width="46" height="46" fill="var(--t2)"/>
+              <rect x="48" y="48" width="46" height="46" fill="var(--t1)"/>
+              <rect x="96" y="48" width="46" height="46" fill="var(--t3)"/>
+              <rect x="144" y="48" width="46" height="46" fill="var(--t1)"/>
+              <rect x="192" y="48" width="46" height="46" fill="var(--t2)"/>
+              <rect x="0" y="96" width="46" height="46" fill="var(--t1)"/>
+              <rect x="48" y="96" width="46" height="46" fill="var(--t3)"/>
+              <rect x="96" y="96" width="46" height="46" fill="var(--t4)"/>
+              <rect x="144" y="96" width="46" height="46" fill="var(--t2)"/>
+              <rect x="192" y="96" width="46" height="46" fill="var(--t1)"/>
+              <rect x="0" y="144" width="46" height="46" fill="var(--t2)"/>
+              <rect x="48" y="144" width="46" height="46" fill="var(--t1)"/>
+              <rect x="96" y="144" width="46" height="46" fill="var(--t3)"/>
+              <rect x="144" y="144" width="46" height="46" fill="var(--t1)"/>
+              <rect x="192" y="144" width="46" height="46" fill="var(--t2)"/>
+              <rect x="0" y="192" width="46" height="46" fill="var(--t1)"/>
+              <rect x="48" y="192" width="46" height="46" fill="var(--t2)"/>
+              <rect x="96" y="192" width="46" height="46" fill="var(--t1)"/>
+              <rect x="144" y="192" width="46" height="46" fill="var(--t3)"/>
+              <rect x="192" y="192" width="46" height="46" fill="var(--t1)"/>
+            </g>
+            <!-- palm-row texture -->
+            <g fill="#0F3D2A" fill-opacity=".28">
+              <circle cx="12" cy="12" r="3"/><circle cx="34" cy="12" r="3"/><circle cx="12" cy="34" r="3"/><circle cx="34" cy="34" r="3"/>
+              <circle cx="156" cy="60" r="3"/><circle cx="178" cy="60" r="3"/><circle cx="156" cy="82" r="3"/><circle cx="178" cy="82" r="3"/>
+              <circle cx="204" cy="204" r="3"/><circle cx="226" cy="204" r="3"/><circle cx="204" cy="226" r="3"/><circle cx="226" cy="226" r="3"/>
+            </g>
+            <!-- highlighted block -->
+            <rect x="96" y="96" width="46" height="46" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="6 4"/>
+          </g>
+          <!-- Orbistick in highlighted block (screen centre ≈ 240,269) -->
+          <ellipse cx="240" cy="270" rx="34" ry="18" fill="url(#glow)"/>
+          <ellipse cx="240" cy="270" rx="22" ry="11" fill="none" stroke="#F2BE22" stroke-width="1.5" stroke-opacity=".8"/>
+          <ellipse cx="240" cy="270" rx="36" ry="18" fill="none" stroke="#F2BE22" stroke-width="1" stroke-opacity=".45"/>
+          <rect x="236" y="206" width="8" height="64" rx="4" fill="#E8EEE9"/>
+          <rect x="233" y="198" width="14" height="18" rx="5" fill="#F2BE22"/>
+          <circle cx="240" cy="207" r="2.5" fill="#0F3D2A"/>
+          <path d="M252 196 a14 14 0 0 1 0 20 M258 190 a22 22 0 0 1 0 32" fill="none" stroke="#F2BE22" stroke-width="2" stroke-linecap="round"/>
+          <!-- satellite -->
+          <g transform="translate(112 72) rotate(-18)">
+            <rect x="-46" y="-9" width="32" height="18" rx="2" fill="#F2BE22"/>
+            <rect x="14" y="-9" width="32" height="18" rx="2" fill="#F2BE22"/>
+            <path d="M-38 -9v18M-30 -9v18M-22 -9v18M22 -9v18M30 -9v18M38 -9v18" stroke="#0F3D2A" stroke-width="1.2"/>
+            <rect x="-14" y="-2" width="28" height="4" fill="#E8EEE9"/>
+            <rect x="-10" y="-12" width="20" height="24" rx="4" fill="#FFFFFF"/>
+            <circle cx="0" cy="14" r="4" fill="#E8EEE9"/>
+          </g>
+          <!-- block label -->
+          <g font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#FFFFFF">
+            <text x="276" y="250">BLOCK C-07</text>
+          </g>
+          <path d="M272 254 L252 262" stroke="#FFFFFF" stroke-width="1" stroke-opacity=".7"/>
+        </svg>
+        <figcaption class="reco" aria-label="Example recommendation card">
+          <div class="tag"><b>Block C-07 · 24 ha</b><span>Orbistick + satellite</span></div>
+          <div class="readings">
+            <span class="warn">pH 4.6</span><span>Moisture 21%</span><span class="warn">K low</span>
+          </div>
+          <p class="action">Apply dolomite before replanting. Hold potassium top-up until pH is above 5.0.</p>
+          <span class="example">Illustrative example</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- 4: Problem & solution -->
+  <section class="band" aria-labelledby="h-ps">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Problem &amp; solution</p>
+        <h2 id="h-ps">Lab tests tell you what your soil needed last month.</h2>
+        <p>Most estates sample sparingly because every lab test costs money and time. Decisions end up resting on a handful of points and old reports.</p>
+      </div>
+      <div class="ps">
+        <div class="ps-labels eyebrow"><span>How it works today</span><span>With Orbitani</span></div>
+        <div class="ps-row">
+          <div class="ps-cell ps-pain"><span class="eyebrow">Today</span><h3>Results take weeks</h3><p>Samples travel to a lab, wait in a queue, and the report often lands after fertilising or planting has already started.</p></div>
+          <div class="ps-cell ps-fix"><span class="eyebrow">With Orbitani</span><h3>Readings on the spot</h3><p>Your field team pushes an Orbistick into the ground and the reading syncs while they are still standing in the block.</p></div>
+        </div>
+        <div class="ps-row">
+          <div class="ps-cell ps-pain"><span class="eyebrow">Today</span><h3>Every sample has a price</h3><p>Lab fees and logistics add up per point, so large estates end up with a few samples standing in for hundreds of hectares.</p></div>
+          <div class="ps-cell ps-fix"><span class="eyebrow">With Orbitani</span><h3>Cover the whole estate</h3><p>Orbistick readings anchor the ground truth, and satellite imagery fills in the space between them across every block.</p></div>
+        </div>
+        <div class="ps-row">
+          <div class="ps-cell ps-pain"><span class="eyebrow">Today</span><h3>Numbers without a next step</h3><p>A table of pH, N, P and K values still needs an agronomist to translate it before anyone in the field can act.</p></div>
+          <div class="ps-cell ps-fix"><span class="eyebrow">With Orbitani</span><h3>Clear actions per block</h3><p>The AI turns readings into a crop fit and a to-do: what to apply, how much and when, in Bahasa Indonesia or English.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5: Unique points -->
+  <section class="band band-tint" aria-labelledby="h-why">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Why Orbitani</p>
+        <h2 id="h-why">Three things your lab report can't do.</h2>
+      </div>
+      <div class="benefits">
+        <article class="benefit">
+          <div class="metric">Minutes</div>
+          <h3>Not weeks</h3>
+          <p>Soil readings arrive while the crew is still in the block, so decisions fit inside the planting and fertilising calendar.</p>
+        </article>
+        <article class="benefit">
+          <div class="metric">Every block</div>
+          <h3>Not a few sample points</h3>
+          <p>Satellite and sensor data together map conditions across the whole estate, so you can see which blocks need attention first.</p>
+        </article>
+        <article class="benefit">
+          <div class="metric">Actions</div>
+          <h3>Not raw numbers</h3>
+          <p>Each block gets a crop recommendation and a concrete next step that field supervisors can follow without decoding a report.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 (middle): CTA -->
+  <section class="cta-band" aria-labelledby="h-mid">
+    <div class="wrap">
+      <div>
+        <h2 id="h-mid">See what Orbitani would show on your estate.</h2>
+        <p>Tell us how to reach you. We'll ask about your crops and hectares, then walk you through it.</p>
+      </div>
+      <button class="btn" type="button" data-cta="middle">Contact us
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </section>
+
+  <!-- 6: Trust -->
+  <section class="band" aria-labelledby="h-trust">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">What we can promise</p>
+        <h2 id="h-trust">Check our numbers against your own lab.</h2>
+        <p>We're early, so we'd rather earn trust in your field than ask for it on a web page.</p>
+      </div>
+      <div class="trust">
+        <div class="promise">
+          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l5 5L20 6" fill="none" stroke="#F2BE22" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <div><h3>Side-by-side comparison</h3><p>Run Orbistick next to your usual lab tests on a pilot block and compare the results yourself before you commit.</p></div>
+        </div>
+        <div class="promise">
+          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="#F2BE22" stroke-width="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#F2BE22" stroke-width="2"/></svg></div>
+          <div><h3>Your data stays yours</h3><p>Field readings and estate maps belong to your company. We don't share or sell them.</p></div>
+        </div>
+        <div class="promise">
+          <div class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16v10H9l-5 4z" fill="none" stroke="#F2BE22" stroke-width="2" stroke-linejoin="round"/></svg></div>
+          <div><h3>Support in Bahasa Indonesia</h3><p>Recommendations and help for your field teams in the language they work in.</p></div>
+        </div>
+        <div class="placeholder" aria-label="Placeholder for pilot results and partner logos">
+          <div style="display:grid;gap:8px">
+            <span class="ph-label">Placeholder · pilot partner quote</span>
+            <blockquote>[Add a real quote from a pilot partner here, with their name, role and estate, once you have their permission.]</blockquote>
+          </div>
+          <div style="display:grid;gap:8px">
+            <span class="ph-label">Placeholder · partners &amp; pilots</span>
+            <div class="logos"><span>[Pilot partner]</span><span>[Pilot partner]</span><span>[Research partner]</span><span>[Programme / award]</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 (bottom): CTA -->
+  <section class="final band-tint" aria-labelledby="h-final">
+    <div class="wrap">
+      <p class="eyebrow">Next step</p>
+      <h2 id="h-final">Your next soil decision doesn't have to wait for the lab.</h2>
+      <p>Leave your name and an email or WhatsApp number. We'll get in touch to understand your estate and show you how Orbitani fits.</p>
+      <div><button class="btn" type="button" data-cta="bottom">Contact us
+        <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Orbitani · Satellite, Orbistick &amp; AI for Indonesian agriculture</span>
+    <span class="owner-count" id="owner-count" hidden></span>
+  </div>
+</footer>
+
+<dialog id="contact-dialog" aria-labelledby="dlg-title">
+  <div class="dlg">
+    <form id="contact-form" novalidate>
+      <div style="display:grid;gap:18px">
+        <div class="dlg-head">
+          <div>
+            <h2 id="dlg-title">Contact us</h2>
+            <p>Two fields. We'll reach out to set up a short call.</p>
+          </div>
+          <button class="icon-btn" type="button" id="dlg-close" aria-label="Close">
+            <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="field">
+          <label for="f-name">Your name</label>
+          <input id="f-name" name="name" type="text" autocomplete="name" maxlength="80" placeholder="e.g. Budi Santoso">
+          <span class="err" id="e-name" hidden>Please enter your name.</span>
+        </div>
+        <div class="field">
+          <label for="f-contact">Email or WhatsApp</label>
+          <input id="f-contact" name="contact" type="text" autocomplete="email" inputmode="email" maxlength="120" placeholder="name@company.co.id or 0812 3456 7890">
+          <span class="hint" id="h-contact">Whichever you check more often.</span>
+          <span class="err" id="e-contact" hidden>Enter a valid email or a WhatsApp number with 9–15 digits.</span>
+        </div>
+        <div class="form-error" id="form-error" hidden></div>
+        <button class="btn" type="submit" id="f-submit">Send</button>
+        <p class="fine">We only use these details to reply to you.</p>
+      </div>
+    </form>
+    <div class="done" id="done" hidden>
+      <div class="check"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M5 12l5 5L19 7" fill="none" stroke="#F2BE22" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <h2 style="font-size:26px">Thanks, we've got it.</h2>
+      <p id="done-msg" style="color:var(--muted)"></p>
+      <button class="btn btn-sm" type="button" id="done-close">Close</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+(() => {
+  // Hosted version only: paste your Google Apps Script web-app URL here (see SETUP.md).
+  const ENDPOINT = "";
+
+  const dlg = document.getElementById("contact-dialog");
+  const form = document.getElementById("contact-form");
+  const done = document.getElementById("done");
+  const fName = document.getElementById("f-name");
+  const fContact = document.getElementById("f-contact");
+  const eName = document.getElementById("e-name");
+  const eContact = document.getElementById("e-contact");
+  const formErr = document.getElementById("form-error");
+  const submit = document.getElementById("f-submit");
+  let source = "top";
+
+  function openDialog(src) {
+    source = src;
+    form.hidden = false; done.hidden = true; formErr.hidden = true;
+    if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+    setTimeout(() => fName.focus(), 30);
+  }
+  function closeDialog() { if (dlg.open) dlg.close ? dlg.close() : dlg.removeAttribute("open"); }
+
+  document.querySelectorAll("[data-cta]").forEach(b => b.addEventListener("click", () => openDialog(b.dataset.cta)));
+  document.getElementById("dlg-close").addEventListener("click", closeDialog);
+  document.getElementById("done-close").addEventListener("click", closeDialog);
+  dlg.addEventListener("click", e => { if (e.target === dlg) closeDialog(); });
+
+  function classify(v) {
+    const s = v.trim();
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(s)) return "email";
+    const digits = s.replace(/[\s\-().]/g, "");
+    if (/^\+?\d{9,15}$/.test(digits)) return "whatsapp";
+    return null;
+  }
+
+  // Storage: claude.ai artifact db when available, else the hosted endpoint.
+  let dbP = null;
+  function stores() {
+    if (!dbP) {
+      dbP = (window.claude && typeof window.claude.use === "function")
+        ? Promise.all([window.claude.use("db"), window.claude.use("user")]).catch(() => [null, null])
+        : Promise.resolve([null, null]);
+    }
+    return dbP;
+  }
+
+  async function save(entry) {
+    const [db, user] = await stores();
+    if (db && user) {
+      try {
+        const id = await user.id();
+        if (id) { await db.doc("signups/" + id).set(entry); return "db"; }
+      } catch (err) { /* fall through to endpoint */ }
+    }
+    if (ENDPOINT) {
+      await fetch(ENDPOINT, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(entry) });
+      return "endpoint";
+    }
+    throw new Error("no_store");
+  }
+
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const name = fName.value.trim();
+    const contact = fContact.value.trim();
+    const type = classify(contact);
+    eName.hidden = !!name; fName.setAttribute("aria-invalid", name ? "false" : "true");
+    eContact.hidden = !!type; fContact.setAttribute("aria-invalid", type ? "false" : "true");
+    if (!name) { fName.focus(); return; }
+    if (!type) { fContact.focus(); return; }
+
+    submit.disabled = true; submit.textContent = "Sending…"; formErr.hidden = true;
+    const entry = { name, contact, contactType: type, source, createdAt: new Date().toISOString(), page: location.hostname || "artifact" };
+    try {
+      await save(entry);
+      document.getElementById("done-msg").textContent =
+        "We'll contact you on " + (type === "email" ? "email at " : "WhatsApp at ") + contact + ".";
+      form.hidden = true; done.hidden = false;
+      form.reset();
+    } catch (err) {
+      formErr.textContent = "We couldn't send this right now. Please try again in a moment.";
+      formErr.hidden = false;
+    } finally {
+      submit.disabled = false; submit.textContent = "Send";
+    }
+  });
+
+  // Owner-only sign-up counter (artifact view).
+  stores().then(async ([db, user]) => {
+    if (!db || !user) return;
+    let owner = false;
+    try { owner = await user.isOwner(); } catch (e) {}
+    if (!owner) return;
+    const badge = document.getElementById("owner-count");
+    db.collection("signups").onSnapshot(snap => {
+      badge.textContent = "Owner view · " + snap.size + " sign-up" + (snap.size === 1 ? "" : "s");
+      badge.hidden = false;
+    }, () => {});
+  });
+})();
+</script>
+
+</body>
+</html>
